@@ -1,34 +1,5 @@
-!**
-
-.openode
-
-.transifexrc
-.DS_STORE
-.git/
-.replit
-
-# Logs
-.bashrc
-logs
-*.log
-npm-debug.log*
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Dependency directories
-node_modules/
-plugin_packages/
-
-# Optional npm cache directory
-.npm
-.upm
-.nvm
-
-# Optional eslint cache
-.eslintcache
-
-# Optional REPL history
-.node_repl_history
-
-# dotenv environment variables file
+.vscode
+/dist/
+/node_modules/
 .env
-.env.test
+*.tsbuildinfo
