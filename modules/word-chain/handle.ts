@@ -70,12 +70,12 @@ export default async function handleWordChain(message: Message): Promise<void> {
 
 	async function reject(reason: string): Promise<void> {
 		if (!logs) return;
-		await logs.send(reason);
+		await logs.send({ content: reason, allowedMentions: { users: [message.author.id] } });
 		if (message.deletable) await message.delete();
 	}
 
-	const current = stripMarkdown(message.cleanContent.normalize("NFC"));
-	if (!config.phrases && /[\d\s#&+./:;<=>?@[\\\]_`{|}~\uD800\uFFFD]/.test(current)) {
+	const word = stripMarkdown(message.cleanContent.normalize("NFC"));
+	if (!config.phrases && /[\d\s#&+./:;<=>?@[\\\]_`{|}~\uD800\uFFFD]/.test(word)) {
 		await reject(
 			`${
 				constants.emojis.statuses.no
@@ -87,32 +87,34 @@ export default async function handleWordChain(message: Message): Promise<void> {
 		return;
 	}
 
-	if (current.length < 3) {
+	if (word.length < 3) {
 		await reject(
 			`${
 				constants.emojis.statuses.no
 			} ${message.author.toString()} **Too short!** ${inlineCode(
-				message.content,
+				word.toLowerCase(),
 			)} must be over 3 characters long.`,
 		);
 		return;
 	}
 
-	if (!(await isWord(current, language)) && !(await isWord(current.toLowerCase(), language))) {
+	const current = normalize(word);
+	if (
+		!(await isWord(current, language)) &&
+		!(await isWord(word, language)) &&
+		!(await isWord(word.toLowerCase(), language))
+	) {
 		await reject(
 			`${
 				constants.emojis.statuses.no
 			} ${message.author.toString()} **Unkown word!** ${inlineCode(
-				message.content,
+				current,
 			)} is not a word. (language: ${language.name})`,
 		);
 		return;
 	}
 
-	const duplicate = await Word.findOne({
-		channel: message.channel.id,
-		word: current.toLowerCase(),
-	}).exec();
+	const duplicate = await Word.findOne({ channel: message.channel.id, word: current }).exec();
 	if (duplicate) {
 		if (
 			!logs &&
@@ -152,7 +154,7 @@ export default async function handleWordChain(message: Message): Promise<void> {
 			`${
 				constants.emojis.statuses.no
 			} ${message.author.toString()} **Wrong letter!** ${inlineCode(
-				current.toLowerCase(),
+				current,
 			)} does not start with ${inlineCode(letter.toUpperCase())}, which ${inlineCode(
 				latest.word,
 			)} ends with.`,
@@ -164,7 +166,7 @@ export default async function handleWordChain(message: Message): Promise<void> {
 		channel: message.channel.id,
 		author: message.author.id,
 		id: message.id,
-		word: normalize(current),
+		word: current,
 	}).save();
 	if (message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.AddReactions))
 		await message.react("👍");
