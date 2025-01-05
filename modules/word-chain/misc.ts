@@ -7,7 +7,7 @@ export const WordChainConfig = mongoose.model(
 		enabled: { type: Boolean, default: true },
 		language: { type: String, default: "en" },
 		logs: String,
-		phrases: { type: Boolean, default: false }, // TODO: DB transfer reminder - enable for guild 774935082909433876
+		phrases: { type: Boolean, default: false },
 		silent: { type: Boolean, default: false },
 	}),
 );

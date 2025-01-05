@@ -24,4 +24,4 @@ FROM base
 COPY --from=build /app /app
 
 # Run bot
-CMD [ "npm", "run", "start" ]
+CMD [ "npm", "run", "start", "--", "--production" ]
