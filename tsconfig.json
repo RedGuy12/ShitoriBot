@@ -14,7 +14,7 @@
 		"lib": ["ES2024"],
 		"module": "NodeNext",
 		"moduleDetection": "force",
-		"noEmitOnError": false,
+		"noEmitOnError": true,
 		"noErrorTruncation": true,
 		"noImplicitOverride": true,
 		"noUncheckedIndexedAccess": true,

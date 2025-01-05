@@ -26,7 +26,7 @@ defineChatCommand(
 				required: true,
 			},
 			enabled: {
-				description: "Enable or disable the bot in that channel",
+				description: "Enable word chain in that channel (defaults to true)",
 				type: ApplicationCommandOptionType.Boolean,
 				required: false,
 			},

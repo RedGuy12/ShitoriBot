@@ -36,7 +36,7 @@ export function messageToText(
 		message.flags.has("Loading") &&
 		((Date.now() - message.createdTimestamp) / 1000 / 60 > 15 ?
 			`${constants.emojis.message.error} The application did not respond`
-		:	`${constants.emojis.misc.loading} ${escapeAllMarkdown(
+		:	`${constants.emojis.message.loading} ${escapeAllMarkdown(
 				message.author?.displayName ?? "The application",
 				// eslint-disable-next-line unicorn/string-content
 			)} is thinking...`);
@@ -304,10 +304,12 @@ export function messageToText(
 			} = message.roleSubscriptionData;
 			return `${constants.emojis.message.add} ${message.author.toString()} ${
 				isRenewal ? "renewed" : "joined"
-			} **${escapeAllMarkdown(tierName)}** ${months ? "and has been" : "as"} a subscriber of ${hyperlink(
+			} **${escapeAllMarkdown(tierName)}** ${
+				months ? "and has been" : "as"
+			} a subscriber of ${hyperlink(
 				escapeAllMarkdown(message.guild?.name ?? ""),
 				`discord://-/channels/${message.guild?.id ?? "@me"}/role-subscriptions`,
-			)}${months ? ` for ${months} month${months === 1 ? "" : "s"}!` : `!`}`;
+			)}${months ? ` for ${months.toLocaleString()} month${months === 1 ? "" : "s"}!` : `!`}`;
 		}
 		case MessageType.InteractionPremiumUpsell: {
 			break;
