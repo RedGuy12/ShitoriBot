@@ -1,6 +1,6 @@
 {
 	"name": "chain-game-bot",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"private": true,
 	"homepage": "https://discord.gg/GcwZtqNCGx",
 	"type": "module",
@@ -20,7 +20,7 @@
 		"discord.js": "14.17.0-dev.1727611463-e1012cc54",
 		"match-sorter": "8.0.0",
 		"mongoose": "8.9.2",
-		"strife.js": "4.2.0"
+		"strife.js": "4.3.0"
 	},
 	"devDependencies": {
 		"@redguy12/prettier-config": "3.2.1",
