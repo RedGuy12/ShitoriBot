@@ -14,6 +14,8 @@ export async function initOuija(thread: AnyThreadChannel, newlyCreated: boolean)
 	await new Ouija({ channel: thread.id, owner: thread.ownerId }).save();
 }
 
+const BLANKS = new Set(["blank", "space", "tab"]);
+
 export async function handleOujia(message: Message): Promise<void> {
 	if (message.system || !message.channel.isThread() || !message.channel.parent) return;
 
@@ -28,12 +30,17 @@ export async function handleOujia(message: Message): Promise<void> {
 	if (message.author.id === client.user.id) return;
 
 	if (ouija.lastUser === message.author.id || ouija.owner === message.author.id) {
-		await message.delete();
+		if (message.deletable) await message.delete();
 		return;
 	}
 
 	const config = await OuijaBoardConfig.findOne({ channel: message.channel.parent.id }).exec();
 	if (message.content === config?.complete) {
+		if (ouija.answer === "" || ouija.answer.endsWith(" ")) {
+			if (message.deletable) await message.delete();
+			return;
+		}
+
 		await ouija.deleteOne();
 		await message.channel.send(
 			`## ${userMention(ouija.owner)} wants to know: __${escapeAllMarkdown(
@@ -43,9 +50,14 @@ export async function handleOujia(message: Message): Promise<void> {
 		return;
 	}
 
-	const character = stripMarkdown(message.cleanContent);
+	const character = BLANKS.has(message.content) ? " " : stripMarkdown(message.cleanContent);
 	if (character.length !== 1) {
-		await message.delete();
+		if (message.deletable) await message.delete();
+		return;
+	}
+
+	if (character === " " && (ouija.answer === "" || ouija.answer.endsWith(" "))) {
+		if (message.deletable) await message.delete();
 		return;
 	}
 
