@@ -50,7 +50,7 @@ export async function handleOujia(message: Message): Promise<void> {
 		return;
 	}
 
-	ouija.answer += message.cleanContent;
+	ouija.answer += character === " " ? character : message.cleanContent;
 	ouija.lastUser = message.author.id;
 	await ouija.save();
 }
