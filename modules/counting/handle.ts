@@ -1,16 +1,11 @@
 import type { Message } from "discord.js";
 
-
-
 import { channelMention, hyperlink, inlineCode, PermissionFlagsBits } from "discord.js";
 import { client } from "strife.js";
-
-
 
 import constants from "../../common/constants.ts";
 import { getLogChannel } from "../../common/misc.ts";
 import { Counting, parseNumber, stringifyNumber } from "./misc.ts";
-
 
 export default async function handleCounting(message: Message): Promise<void> {
 	const config = await Counting.findOne({ channel: message.channel.id }).exec();

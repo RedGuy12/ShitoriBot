@@ -1,14 +1,9 @@
 import type { AnyThreadChannel, Message } from "discord.js";
 
-
-
 import { userMention } from "discord.js";
 import { client, escapeAllMarkdown, stripMarkdown } from "strife.js";
 
-
-
 import { Ouija, OuijaBoardConfig } from "./misc.ts";
-
 
 export async function initOuija(thread: AnyThreadChannel, newlyCreated: boolean): Promise<void> {
 	if (!newlyCreated || !thread.parent || !thread.ownerId) return;
