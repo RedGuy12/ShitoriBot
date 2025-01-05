@@ -1,9 +1,5 @@
 import type { Snowflake } from "discord.js";
 
-
-
-
-
 const env =
 	process.argv.some((file) => file.endsWith(".test.js")) ? "testing"
 	: process.env.NODE_ENV === "production" ? "production"
