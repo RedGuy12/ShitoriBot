@@ -2,7 +2,7 @@
 
 # Install Node.js
 ARG NODE_VERSION=22.10.0
-FROM node:${NODE_VERSION}-slim as base
+FROM node:${NODE_VERSION}-slim AS base
 
 # Set up working directory
 LABEL fly_launch_runtime="Node.js"
@@ -10,7 +10,7 @@ WORKDIR /app
 ENV NODE_ENV="production"
 
 # Install dependencies
-FROM base as build
+FROM base AS build
 COPY --link package-lock.json package.json ./
 RUN npm ci --include=dev
 
