@@ -22,12 +22,14 @@ export function stringifyNumber(number: number, base: number): string {
 }
 
 export function parseNumber(number: string, base: number): number {
+	if (base === 10) {
+		if (/^[+-]?\d{1,3}(?:\d*|(?:,\d{3})*)$/i.test(number))
+			return Number.parseInt(number.replaceAll(",", ""), base);
+		return Number.NaN;
+	}
+
 	const validCharacters = "0123456789abcdefghijklmnopqrstuvwxyz".slice(0, base);
-	if (
-		base === 10 ?
-			/^[+-]?\d{1,3}(?:\d+|(?:,\d{3})+)$/i.test(number)
-		:	new RegExp(`^[+-]?[${validCharacters}]+$`, "i").test(number)
-	)
-		return Number.parseInt(base === 10 ? number.replaceAll(",", "") : number, base);
+	if (new RegExp(`^[+-]?[${validCharacters}]+$`, "i").test(number))
+		return Number.parseInt(number, base);
 	return Number.NaN;
 }
