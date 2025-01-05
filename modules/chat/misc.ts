@@ -13,7 +13,7 @@ export const Chat = mongoose.model(
 	"Chat",
 	new mongoose.Schema({
 		guild: { type: String, required: true },
-		prompt: { type: String, required: true },
+		prompt: String,
 		response: { type: String, required: true },
 	}),
 );

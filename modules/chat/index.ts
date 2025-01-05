@@ -66,7 +66,7 @@ defineEvent("messageCreate", async (message) => {
 
 	if (ignoredChannels.has(message.channel.id)) return;
 	await message.channel.sendTyping();
-	await wait(Math.random() * Math.random() * 9750);
+	await wait(Math.random() * Math.random() * 4750);
 	ignoredChannels.delete(message.channel.id);
 
 	if (sentResponses.has(message.id))

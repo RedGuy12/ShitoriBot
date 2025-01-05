@@ -22,8 +22,6 @@ import { GlobalBotInvitesPattern, messageToText } from "../../util/discord.ts";
 import { normalize } from "../../util/text.ts";
 import { Chat, ChatConfig, ChatConsent } from "./misc.ts";
 
-const chats = await Chat.find({}).lean();
-
 export default async function sendChat(message: Message<true>): Promise<string | undefined> {
 	if (
 		message.author.id === client.user.id ||
@@ -40,29 +38,21 @@ export default async function sendChat(message: Message<true>): Promise<string |
 		client.user.toString(),
 	);
 
+	const chats = await Chat.find({ guild: message.guild.id, response: { $ne: prompt } }).lean();
 	const response = getResponse(0.9) ?? getResponse(0.75) ?? getResponse(0.45);
 	if (!response) return;
-	
+
 	return response
 		.replaceAll(client.user.toString(), message.author.toString())
 		.replaceAll("<@0>", client.user.toString());
 
 	function getResponse(threshold: number): string | undefined {
-		const responses = didYouMean(
-			prompt,
-			chats.filter(
-				(chat) =>
-					chat.guild === message.guild.id &&
-					chat.response !== prompt &&
-					!removedResponses[message.guild.id]?.has(chat.response),
-			),
-			{
-				matchPath: ["prompt"],
-				returnType: ReturnTypeEnums.ALL_CLOSEST_MATCHES,
-				thresholdType: ThresholdTypeEnums.SIMILARITY,
-				threshold,
-			},
-		).toSorted(() => Math.random() - 0.5);
+		const responses = didYouMean(prompt, chats, {
+			matchPath: ["prompt"],
+			returnType: ReturnTypeEnums.ALL_CLOSEST_MATCHES,
+			thresholdType: ThresholdTypeEnums.SIMILARITY,
+			threshold,
+		}).toSorted(() => Math.random() - 0.5);
 		return responses[0]?.response;
 	}
 }
@@ -115,12 +105,16 @@ export async function learn(message: Message<true>): Promise<void> {
 			client.user.toString(),
 		);
 
-	if (reference?.author.id === message.author.id || prompt === undefined || prompt === response)
+	if (
+		reference?.author.id === message.author.id ||
+		prompt === undefined ||
+		!response ||
+		prompt === response
+	)
 		return;
-	chats.push(await new Chat({ guild: message.guild.id, prompt, response }).save());
+	await new Chat({ guild: message.guild.id, prompt, response }).save();
 }
 
-const removedResponses: Record<Snowflake, Set<string>> = {};
 export async function removeResponse(
 	interaction: MessageContextMenuCommandInteraction<"cached" | "raw">,
 ): Promise<InteractionResponse | undefined> {
@@ -159,8 +153,6 @@ export async function removeResponse(
 	const response = interaction.targetMessage.content
 		.replaceAll(client.user.toString(), "<@0>")
 		.replaceAll(interaction.targetMessage.author.toString(), client.user.toString());
-	removedResponses[interaction.guild.id] ??= new Set();
-	removedResponses[interaction.guild.id]?.add(response);
 
 	const { deletedCount } = await Chat.deleteMany({
 		guild: interaction.guild.id,
