@@ -31,7 +31,9 @@ export async function getLogChannel(
 	if (
 		logs.isThread() ?
 			logs.sendable
-		:	logs.permissionsFor(client.user)?.has(PermissionFlagsBits.SendMessages)
+		:	logs
+				.permissionsFor(client.user)
+				?.has(PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages)
 	)
 		return logs;
 	return false;

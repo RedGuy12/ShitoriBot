@@ -69,9 +69,11 @@ export default async function handleWordChain(message: Message): Promise<void> {
 	}
 
 	async function reject(reason: string): Promise<void> {
+		if (logs === undefined) return;
+		if (message.deletable) await message.delete();
+
 		if (!logs) return;
 		await logs.send({ content: reason, allowedMentions: { users: [message.author.id] } });
-		if (message.deletable) await message.delete();
 	}
 
 	const word = stripMarkdown(message.cleanContent.normalize("NFC"));

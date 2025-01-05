@@ -12,21 +12,20 @@ export async function initOuija(thread: AnyThreadChannel, newlyCreated: boolean)
 	if (!config?.enabled) return;
 
 	await new Ouija({ channel: thread.id, owner: thread.ownerId }).save();
-	await thread.send("The spirits are responding…");
 }
 
 export async function handleOujia(message: Message): Promise<void> {
-	if (
-		message.system ||
-		message.id === message.channel.id ||
-		message.author.id === client.user.id ||
-		!message.channel.isThread() ||
-		!message.channel.parent
-	)
-		return;
+	if (message.system || !message.channel.isThread() || !message.channel.parent) return;
 
 	const ouija = await Ouija.findOne({ channel: message.channel.id }).exec();
 	if (!ouija) return;
+
+	if (message.id === message.channel.id) {
+		await message.channel.send("The spirits are responding…");
+		return;
+	}
+
+	if (message.author.id === client.user.id) return;
 
 	if (ouija.lastUser === message.author.id || ouija.owner === message.author.id) {
 		await message.delete();

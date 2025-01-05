@@ -8,7 +8,13 @@ import type {
 import assert from "node:assert";
 
 import didYouMean, { ReturnTypeEnums, ThresholdTypeEnums } from "didyoumean2";
-import { ChannelType, ComponentType, MessageType, TextInputStyle } from "discord.js";
+import {
+	ChannelType,
+	ComponentType,
+	MessageType,
+	PermissionFlagsBits,
+	TextInputStyle,
+} from "discord.js";
 import {
 	client,
 	getBaseChannel,
@@ -78,7 +84,7 @@ export async function learn(message: Message<true>): Promise<void> {
 		message.channel.type === ChannelType.PrivateThread ||
 		!baseChannel ||
 		baseChannel.isDMBased() ||
-		!baseChannel.permissionsFor(baseChannel.guild.id)?.has("ViewChannel")
+		!baseChannel.permissionsFor(baseChannel.guild.id)?.has(PermissionFlagsBits.ViewChannel)
 	)
 		return;
 

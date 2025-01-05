@@ -35,9 +35,11 @@ export default async function handleCounting(message: Message): Promise<void> {
 	}
 
 	async function reject(reason: string): Promise<void> {
+		if (logs === undefined) return;
+		if (message.deletable) await message.delete();
+
 		if (!logs) return;
 		await logs.send({ content: reason, allowedMentions: { users: [message.author.id] } });
-		if (message.deletable) await message.delete();
 	}
 
 	const current = parseNumber(message.content, config.base);
