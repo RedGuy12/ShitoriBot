@@ -40,8 +40,8 @@ export default async function configWordChain(
 				title: "Word Chain Settings",
 				color: constants.themeColor,
 				description:
-				`**Channel**: ${channelMention(config.channel)}\n` +
-				`**Enabled**: ${constants.emojis.statuses[config.enabled ? "yes" : "no"]}\n\n` +
+					`**Channel**: ${channelMention(config.channel)}\n` +
+					`**Enabled**: ${constants.emojis.statuses[config.enabled ? "yes" : "no"]}\n\n` +
 					`**Logs Channel**: ${await displayLogChannel(config, interaction.guild)}\n` +
 					`**Phrases**: ${constants.emojis.statuses[config.phrases ? "yes" : "no"]}\n` +
 					`**Language**: ${
