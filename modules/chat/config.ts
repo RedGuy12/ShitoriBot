@@ -9,13 +9,13 @@ import { ChatConfig } from "./misc.ts";
 
 export default async function configChat(
 	interaction: ChatInputCommandInteraction<"cached" | "raw">,
-	newConfig: { channel?: GuildTextBasedChannel; enabled?: boolean },
+	newConfig: { channel?: GuildTextBasedChannel; enabled: boolean },
 ): Promise<void> {
 	assert(interaction.guild);
 
 	const config = await ChatConfig.findOneAndUpdate(
 		{ guild: interaction.guild.id },
-		{ ...newConfig, channel: newConfig.channel?.id },
+		{ enabled: newConfig.enabled, channel: newConfig.channel?.id ?? null },
 		{ new: true, upsert: true, setDefaultsOnInsert: true },
 	).exec();
 

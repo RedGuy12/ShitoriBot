@@ -29,7 +29,7 @@ defineChatCommand(
 		restricted: true,
 		options: {
 			channel: {
-				description: `The channel to use for CGB Chat`,
+				description: `The channel to use for CGB Chat, or omit to only track messages and not respond`,
 				type: ApplicationCommandOptionType.Channel,
 				channelTypes: [
 					ChannelType.AnnouncementThread,
@@ -43,9 +43,9 @@ defineChatCommand(
 				required: false,
 			},
 			enabled: {
-				description: `Enable CGB Chat in this server (defaults to false)`,
+				description: `Enable tracking messages in this server`,
 				type: ApplicationCommandOptionType.Boolean,
-				required: false,
+				required: true,
 			},
 		},
 	} as const,
