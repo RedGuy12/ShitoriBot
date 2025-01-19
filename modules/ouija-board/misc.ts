@@ -5,6 +5,7 @@ export const OuijaBoardConfig = mongoose.model(
 	new mongoose.Schema({
 		channel: { type: String, required: true },
 		enabled: { type: Boolean, default: true },
+		react: { type: Boolean, default: true },
 		complete: { type: String, default: "goodbye" },
 	}),
 );

@@ -22,6 +22,11 @@ defineChatCommand(
 				type: ApplicationCommandOptionType.Boolean,
 				required: false,
 			},
+			react: {
+				description: "React to valid characters with 👍 (defaults to true)",
+				type: ApplicationCommandOptionType.Boolean,
+				required: false,
+			},
 			complete: {
 				description:
 					"What members should send when the full response has been sent (defaults to “goodbye”)",

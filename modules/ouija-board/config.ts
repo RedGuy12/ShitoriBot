@@ -12,6 +12,7 @@ export default async function configOuijaBoard(
 	newConfig: {
 		channel: ForumChannel | MediaChannel;
 		enabled?: boolean;
+		react?: boolean;
 		complete?: string;
 	},
 ): Promise<void> {
@@ -34,8 +35,9 @@ export default async function configOuijaBoard(
 				title: "Ouija Board Settings",
 				color: constants.themeColor,
 				description:
-					`**Enabled**: ${constants.emojis.statuses[config.enabled ? "yes" : "no"]}\n` +
 					`**Channel**: ${channelMention(config.channel)}\n` +
+					`**Enabled**: ${constants.emojis.statuses[config.enabled ? "yes" : "no"]}\n\n` +
+					`**React**: ${constants.emojis.statuses[config.enabled ? "yes" : "no"]}\n` +
 					`**Completion Message**: ${inlineCode(config.complete)}`,
 			},
 		],
