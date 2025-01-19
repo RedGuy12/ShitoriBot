@@ -30,14 +30,14 @@ export async function handleOujia(message: Message): Promise<void> {
 	if (message.author.id === client.user.id) return;
 
 	if (ouija.lastUser === message.author.id || ouija.owner === message.author.id) {
-		if (message.deletable) await message.delete();
+		if (message.deletable) await message.delete().catch(() => void 0);
 		return;
 	}
 
 	const config = await OuijaBoardConfig.findOne({ channel: message.channel.parent.id }).exec();
 	if (message.content === config?.complete) {
 		if (ouija.answer === "" || ouija.answer.endsWith(" ")) {
-			if (message.deletable) await message.delete();
+			if (message.deletable) await message.delete().catch(() => void 0);
 			return;
 		}
 
@@ -52,12 +52,12 @@ export async function handleOujia(message: Message): Promise<void> {
 
 	const character = BLANKS.has(message.content) ? " " : stripMarkdown(message.cleanContent);
 	if (character.length !== 1) {
-		if (message.deletable) await message.delete();
+		if (message.deletable) await message.delete().catch(() => void 0);
 		return;
 	}
 
 	if (character === " " && (ouija.answer === "" || ouija.answer.endsWith(" "))) {
-		if (message.deletable) await message.delete();
+		if (message.deletable) await message.delete().catch(() => void 0);
 		return;
 	}
 
