@@ -2,8 +2,14 @@ import type { Message, Snowflake } from "discord.js";
 
 import { setTimeout as wait } from "node:timers/promises";
 
-import { ApplicationCommandOptionType, ApplicationCommandType, ChannelType } from "discord.js";
 import {
+	ApplicationCommandOptionType,
+	ApplicationCommandType,
+	ChannelType,
+	PermissionFlagsBits,
+} from "discord.js";
+import {
+	client,
 	defineButton,
 	defineChatCommand,
 	defineEvent,
@@ -61,6 +67,12 @@ defineEvent("messageCreate", async (message) => {
 	if (!message.inGuild()) return;
 	await learn(message);
 
+	if (message.channel.isThread())
+		if (!message.channel.sendable) return;
+		else if (
+			!message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.SendMessages)
+		)
+			return;
 	const response = await sendChat(message);
 	if (!response) return;
 
@@ -69,12 +81,7 @@ defineEvent("messageCreate", async (message) => {
 	await wait(Math.random() * Math.random() * 4750);
 	ignoredChannels.delete(message.channel.id);
 
-	if (sentResponses.has(message.id))
-		await sentResponses
-			.get(message.id)
-			?.edit(response)
-			.catch(() => void 0);
-	else if (message.system) sentResponses.set(message.id, await message.channel.send(response));
+	if (message.system) sentResponses.set(message.id, await message.channel.send(response));
 	else sentResponses.set(message.id, await message.reply(response));
 });
 
@@ -89,11 +96,18 @@ defineEvent("messageUpdate", async (_, message) => {
 		await found.edit(
 			response ?? { content: zeroWidthSpace, components: [], embeds: [], files: [] },
 		);
-	else if (response && message.channel.isSendable())
-		sentResponses.set(
-			message.id,
-			await (message.system ? message.channel.send(response) : message.reply(response)),
-		);
+	else if (response) {
+		if (!message.channel.isSendable()) return;
+		if (message.channel.isThread())
+			if (!message.channel.sendable) return;
+			else if (
+				!message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.SendMessages)
+			)
+				return;
+
+		if (message.system) sentResponses.set(message.id, await message.channel.send(response));
+		else sentResponses.set(message.id, await message.reply(response));
+	}
 });
 
 defineEvent("messageDelete", async (message) => {

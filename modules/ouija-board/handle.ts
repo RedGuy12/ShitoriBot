@@ -23,7 +23,7 @@ export async function handleOujia(message: Message): Promise<void> {
 	if (!ouija) return;
 
 	if (message.id === message.channel.id) {
-		await message.channel.send("The spirits are responding…");
+		if (message.channel.sendable) await message.channel.send("The spirits are responding…");
 		return;
 	}
 
@@ -42,11 +42,12 @@ export async function handleOujia(message: Message): Promise<void> {
 		}
 
 		await ouija.deleteOne();
-		await message.channel.send(
-			`## ${userMention(ouija.owner)} wants to know: __${escapeAllMarkdown(
-				message.channel.name,
-			)}__\n**The spirits have responded!**\n> ${ouija.answer}`,
-		);
+		if (message.channel.sendable)
+			await message.channel.send(
+				`## ${userMention(ouija.owner)} wants to know: __${escapeAllMarkdown(
+					message.channel.name,
+				)}__\n**The spirits have responded!**\n> ${ouija.answer}`,
+			);
 		return;
 	}
 
