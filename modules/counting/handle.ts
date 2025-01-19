@@ -31,6 +31,8 @@ export default async function handleCounting(message: Message): Promise<void> {
 
 		if (message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.AddReactions))
 			await message.react(constants.emojis.statuses.no);
+
+		await config.updateOne({ enabled: false }).exec();
 		return;
 	}
 
