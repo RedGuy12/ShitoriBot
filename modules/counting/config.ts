@@ -36,9 +36,9 @@ export default async function configCounting(
 				title: "Counting Settings",
 				color: constants.themeColor,
 				description:
-					`**Enabled**: ${constants.emojis.statuses[config.enabled ? "yes" : "no"]}\n\n` +
 					`**Channel**: ${channelMention(config.channel)}\n` +
-					`**Logs Channel**: ${await displayLogChannel(config, interaction.guild)}\n\n` +
+					`**Enabled**: ${constants.emojis.statuses[config.enabled ? "yes" : "no"]}\n\n` +
+					`**Logs Channel**: ${await displayLogChannel(config, interaction.guild)}\n` +
 					`**Base**: ${config.base.toLocaleString()}\n` +
 					`**Step**: ${config.step.toLocaleString()}\n` +
 					`**Reset on Invalid**: ${
