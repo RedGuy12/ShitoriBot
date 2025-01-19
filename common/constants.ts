@@ -37,14 +37,13 @@ export default {
 			warning: "<:emoji:0>",
 			loading: "<a:emoji:0>",
 		},
-
 		statuses: { no: "<:emoji:1325338058542813275>", yes: "<:emoji:1325338022207684797>" },
 	} satisfies Record<string, Record<string, `<${"a" | ""}:emoji:${Snowflake}>`>>,
 
 	env,
 
 	testingServer: "823941138653773868",
-	themeColor: 0x00_00_00, // TODO
+	themeColor: 0xe9_ea_ea,
 
 	users: {
 		bot: "823932474118635540",
