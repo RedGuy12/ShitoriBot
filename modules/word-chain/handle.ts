@@ -113,7 +113,7 @@ export default async function handleWordChain(message: Message): Promise<void> {
 		await reject(
 			`${
 				constants.emojis.statuses.no
-			} ${message.author.toString()} **Unkown word!** ${inlineCode(
+			} ${message.author.toString()} **Unknown word!** ${inlineCode(
 				current,
 			)} is not a word. (language: ${language.name})`,
 		);
