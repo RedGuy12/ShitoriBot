@@ -105,11 +105,7 @@ export default async function handleWordChain(message: Message): Promise<void> {
 	}
 
 	const current = normalize(word);
-	if (
-		!(await isWord(current, language)) &&
-		!(await isWord(word, language)) &&
-		!(await isWord(word.toLowerCase(), language))
-	) {
+	if (!(await isWord(current, language))) {
 		await reject(
 			`${
 				constants.emojis.statuses.no

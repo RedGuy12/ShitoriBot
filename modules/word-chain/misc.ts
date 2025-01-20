@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { normalize } from "../../util/text.ts";
+
 export const WordChainConfig = mongoose.model(
 	"WordChainConfig",
 	new mongoose.Schema({
@@ -70,41 +72,67 @@ const languageList = Object.entries(languageIndex).map(([code, name]): [string, 
 export const languages = Object.fromEntries(languageList);
 
 export async function isWord(word: string, language: Language): Promise<boolean> {
-	const response = await fetch(
+	const search = await fetch(
 		`https://en.wiktionary.org/w/api.php?${new URLSearchParams({
 			format: "json",
-			action: "parse",
-			page: word,
-			prop: ["categories", "sections"].join("|"),
-			redirects: true.toString(),
+			action: "query",
+			list: "prefixsearch",
+			pssearch: word,
 		})}`,
 	)
 		.then((response) => response.text())
 		.then((text) => {
 			try {
-				return JSON.parse(text) as WiktionaryParseResult | WiktionaryError;
+				return JSON.parse(text) as WiktionaryQueryPrefixsearchResult | WiktionaryError;
 			} catch (error) {
 				throw new AggregateError([error], "Error parsing `parse` API result", {
 					cause: text,
 				});
 			}
 		});
+	if ("error" in search) return false;
 
-	if ("error" in response) return false;
-	if (
-		response.parse.categories.some(
-			(category) => category["*"] === `${language.name} misspellings`,
+	for (const page of search.query.prefixsearch) {
+		if (normalize(page.title) !== word) continue;
+
+		const metadata = await fetch(
+			`https://en.wiktionary.org/w/api.php?${new URLSearchParams({
+				format: "json",
+				action: "parse",
+				pageid: page.pageid.toString(),
+				prop: ["categories", "sections"].join("|"),
+				redirects: true.toString(),
+			})}`,
 		)
-	)
-		return false;
-	return response.parse.sections.some(
-		(section) => section.level === "2" && section.line === language.name,
-	);
+			.then((response) => response.text())
+			.then((text) => {
+				try {
+					return JSON.parse(text) as WiktionaryParseResult | WiktionaryError;
+				} catch (error) {
+					throw new AggregateError([error], "Error parsing `parse` API result", {
+						cause: text,
+					});
+				}
+			});
+		if ("error" in metadata) continue;
+
+		if (
+			metadata.parse.categories.some(
+				(category) => category["*"] === `${language.name} misspellings`,
+			)
+		)
+			continue;
+		return metadata.parse.sections.some(
+			(section) => section.level === "2" && section.line === language.name,
+		);
+	}
+
+	return false;
 }
 
 export type Category = { "sortkey": string; "hidden"?: ""; "*": string };
-export type CategoryMember = { pageid: number; ns: number; title: string };
 export type Language = { code: string; name: string; localname?: string };
+export type PageResult = { pageid: number; ns: number; title: string };
 export type Redirect = { from: string; to: string };
 export type Section = {
 	toclevel: number;
@@ -132,7 +160,12 @@ export type WiktionaryParseResult = {
 export type WiktionaryQueryCategorymembersResult = {
 	batchcomplete?: "";
 	limits: { categorymembers: number };
-	query: { categorymembers: CategoryMember[] };
+	query: { categorymembers: PageResult[] };
+};
+export type WiktionaryQueryPrefixsearchResult = {
+	batchcomplete?: "";
+	continue?: { psoffset: number; continue: string };
+	query: { prefixsearch: PageResult[] };
 };
 export type WiktionaryError = {
 	error: { "code": string; "info": string; "*": string };
