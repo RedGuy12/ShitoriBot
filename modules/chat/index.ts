@@ -2,14 +2,8 @@ import type { Message, Snowflake } from "discord.js";
 
 import { setTimeout as wait } from "node:timers/promises";
 
+import { ApplicationCommandOptionType, ApplicationCommandType, ChannelType } from "discord.js";
 import {
-	ApplicationCommandOptionType,
-	ApplicationCommandType,
-	ChannelType,
-	PermissionFlagsBits,
-} from "discord.js";
-import {
-	client,
 	defineButton,
 	defineChatCommand,
 	defineEvent,
@@ -17,6 +11,7 @@ import {
 	zeroWidthSpace,
 } from "strife.js";
 
+import { assertSendable } from "../../util/discord.ts";
 import sendChat, { learn, removeResponse } from "./chat.ts";
 import configChat from "./config.ts";
 import { allowChat, denyChat, showConsent } from "./consent.ts";
@@ -67,12 +62,7 @@ defineEvent("messageCreate", async (message) => {
 	if (!message.inGuild()) return;
 	await learn(message);
 
-	if (message.channel.isThread())
-		if (!message.channel.sendable) return;
-		else if (
-			!message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.SendMessages)
-		)
-			return;
+	if (!assertSendable(message.channel)) return;
 	const response = await sendChat(message);
 	if (!response) return;
 
@@ -97,14 +87,7 @@ defineEvent("messageUpdate", async (_, message) => {
 			response ?? { content: zeroWidthSpace, components: [], embeds: [], files: [] },
 		);
 	else if (response) {
-		if (!message.channel.isSendable()) return;
-		if (message.channel.isThread())
-			if (!message.channel.sendable) return;
-			else if (
-				!message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.SendMessages)
-			)
-				return;
-
+		if (!assertSendable(message.channel)) return;
 		if (message.system) sentResponses.set(message.id, await message.channel.send(response));
 		else sentResponses.set(message.id, await message.reply(response));
 	}

@@ -1,4 +1,13 @@
-import type { APIEmbed, Awaitable, Embed, Message, MessageSnapshot, Snowflake } from "discord.js";
+import type {
+	APIEmbed,
+	Awaitable,
+	Channel,
+	Embed,
+	Message,
+	MessageSnapshot,
+	Snowflake,
+} from "discord.js";
+import type { SendableChannel } from "strife.js";
 
 import {
 	channelLink,
@@ -6,6 +15,7 @@ import {
 	hyperlink,
 	messageLink,
 	MessageType,
+	PermissionFlagsBits,
 	time,
 	TimestampStyles,
 } from "discord.js";
@@ -422,3 +432,19 @@ export const GlobalBotInvitesPattern = new RegExp(
 	),
 	"gi",
 );
+
+export function assertSendable<T extends Channel>(channel: T): (T & SendableChannel) | undefined {
+	if (!channel.isSendable()) return;
+	if (channel.isDMBased()) return channel;
+
+	if (channel.isThread()) {
+		if (!channel.sendable) return;
+		return channel;
+	}
+
+	const permissions = channel.permissionsFor(client.user);
+	if (!permissions) return;
+
+	if (permissions.has(PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages))
+		return channel;
+}

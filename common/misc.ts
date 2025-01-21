@@ -1,9 +1,7 @@
 import type { Guild, Snowflake } from "discord.js";
 import type { SendableChannel } from "strife.js";
 
-import { PermissionFlagsBits } from "discord.js";
-import { client } from "strife.js";
-
+import { assertSendable } from "../util/discord.ts";
 import constants from "./constants.ts";
 
 export async function displayLogChannel(
@@ -27,14 +25,5 @@ export async function getLogChannel(
 ): Promise<SendableChannel | false | undefined> {
 	if (config.silent) return;
 	const logs = await guild.channels.fetch(config.logs ?? config.channel).catch(() => void 0);
-	if (!logs?.isSendable()) return false;
-	if (
-		logs.isThread() ?
-			logs.sendable
-		:	logs
-				.permissionsFor(client.user)
-				?.has(PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages)
-	)
-		return logs;
-	return false;
+	return (logs && assertSendable(logs)) ?? false;
 }

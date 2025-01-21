@@ -14,16 +14,14 @@ import constants from "../../common/constants.ts";
 import { getLogChannel } from "../../common/misc.ts";
 import { normalize } from "../../util/text.ts";
 import { isWord, languages, Word, WordChainConfig } from "./misc.ts";
+import { assertSendable } from "../../util/discord.ts";
 
 export default async function handleWordChain(message: Message): Promise<void> {
 	const config = await WordChainConfig.findOne({ channel: message.channel.id }).exec();
 	if (!config || !message.inGuild() || client.user.id === message.author.id || !config.enabled)
 		return;
 
-	const owner =
-		message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.SendMessages) ?
-			message.channel
-		:	await message.guild.fetchOwner();
+	const owner = assertSendable(message.channel) ?? (await message.guild.fetchOwner());
 	const logs = await getLogChannel(config, message.guild);
 	if (logs === false) {
 		try {

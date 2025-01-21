@@ -5,6 +5,7 @@ import { client } from "strife.js";
 
 import constants from "../../common/constants.ts";
 import { getLogChannel } from "../../common/misc.ts";
+import { assertSendable } from "../../util/discord.ts";
 import { Counting, parseNumber, stringifyNumber } from "./misc.ts";
 
 export default async function handleCounting(message: Message): Promise<void> {
@@ -14,10 +15,7 @@ export default async function handleCounting(message: Message): Promise<void> {
 
 	const logs = await getLogChannel(config, message.guild);
 	if (logs === false) {
-		const owner =
-			message.channel.permissionsFor(client.user)?.has(PermissionFlagsBits.SendMessages) ?
-				message.channel
-			:	await message.guild.fetchOwner();
+		const owner = assertSendable(message.channel) ?? (await message.guild.fetchOwner());
 		try {
 			await owner.send(
 				`${constants.emojis.statuses.no} **Configuration error: Unknown logs channel!** I either could not find or do not have permissions to send messages in ${channelMention(
