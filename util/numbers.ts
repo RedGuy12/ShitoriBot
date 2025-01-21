@@ -1,7 +1,7 @@
 export type Duration =
 	| `a ${"few seconds" | "minute" | "day" | "month" | "year"}`
 	| "an hour"
-	| `${number} ${"minutes" | "hours" | "days" | "months" | "years"}`;
+	| `${string} ${"minutes" | "hours" | "days" | "months" | "years"}`;
 export function formatDuration(duration: number): Duration {
 	const seconds = duration / 1000;
 
@@ -20,21 +20,23 @@ export function formatDuration(duration: number): Duration {
 	if (seconds < secondsThreshold) return "a few seconds" as const;
 	if (seconds < minutesThreshold * perMinute) {
 		const minutes = Math.round(seconds / perMinute);
-		return minutes === 1 ? ("a minute" as const) : (`${minutes} minutes` as const);
+		return minutes === 1 ?
+				("a minute" as const)
+			:	(`${minutes.toLocaleString()} minutes` as const);
 	}
 	if (seconds < hoursThreshold * perHour) {
 		const hours = Math.round(seconds / perHour);
-		return hours === 1 ? ("an hour" as const) : (`${hours} hours` as const);
+		return hours === 1 ? ("an hour" as const) : (`${hours.toLocaleString()} hours` as const);
 	}
 	if (seconds < daysThreshold * perDay) {
 		const days = Math.round(seconds / perDay);
-		return days === 1 ? ("a day" as const) : (`${days} days` as const);
+		return days === 1 ? ("a day" as const) : (`${days.toLocaleString()} days` as const);
 	}
 	if (seconds < monthsThreshold * perMonth) {
 		const months = Math.round(seconds / perMonth);
-		return months === 1 ? ("a month" as const) : (`${months} months` as const);
+		return months === 1 ? ("a month" as const) : (`${months.toLocaleString()} months` as const);
 	}
 
 	const years = Math.round(seconds / perYear);
-	return years === 1 ? ("a year" as const) : (`${years} years` as const);
+	return years === 1 ? ("a year" as const) : (`${years.toLocaleString()} years` as const);
 }
