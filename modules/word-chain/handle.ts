@@ -99,7 +99,7 @@ export default async function handleWordChain(message: Message): Promise<void> {
 				constants.emojis.statuses.no
 			} ${message.author.toString()} **Too short!** ${inlineCode(
 				word.toLowerCase(),
-			)} must be over 3 characters long.`,
+			)} must be 3 or more characters long.`,
 		);
 		return;
 	}
