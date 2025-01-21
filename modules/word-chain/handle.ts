@@ -12,9 +12,9 @@ import { client, stripMarkdown } from "strife.js";
 
 import constants from "../../common/constants.ts";
 import { getLogChannel } from "../../common/misc.ts";
+import { assertSendable } from "../../util/discord.ts";
 import { normalize } from "../../util/text.ts";
 import { isWord, languages, Word, WordChainConfig } from "./misc.ts";
-import { assertSendable } from "../../util/discord.ts";
 
 export default async function handleWordChain(message: Message): Promise<void> {
 	const config = await WordChainConfig.findOne({ channel: message.channel.id }).exec();
