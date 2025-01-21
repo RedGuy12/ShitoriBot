@@ -52,7 +52,7 @@ export async function handleOujia(message: Message): Promise<void> {
 	}
 
 	const character = BLANKS.has(message.content) ? " " : stripMarkdown(message.cleanContent);
-	if (character.length !== 1) {
+	if ([...new Intl.Segmenter().segment(character)].length !== 1) {
 		if (message.deletable) await message.delete().catch(() => void 0);
 		return;
 	}
