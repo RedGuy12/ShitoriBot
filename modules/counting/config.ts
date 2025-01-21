@@ -1,12 +1,30 @@
-import type { ChatInputCommandInteraction, GuildTextBasedChannel } from "discord.js";
+import type {
+	ButtonInteraction,
+	ChatInputCommandInteraction,
+	GuildTextBasedChannel,
+	ModalSubmitInteraction,
+	Snowflake,
+} from "discord.js";
 
 import assert from "node:assert";
 
-import { channelMention, hyperlink, messageLink, userMention } from "discord.js";
+import {
+	ButtonStyle,
+	channelMention,
+	ComponentType,
+	hyperlink,
+	inlineCode,
+	messageLink,
+	PermissionFlagsBits,
+	TextInputStyle,
+	userMention,
+} from "discord.js";
+import { client } from "strife.js";
 
 import constants from "../../common/constants.ts";
 import { displayLogChannel } from "../../common/misc.ts";
-import { Counting, stringifyNumber } from "./misc.ts";
+import { assertSendable } from "../../util/discord.ts";
+import { Counting, parseNumber, stringifyNumber } from "./misc.ts";
 
 export default async function configCounting(
 	interaction: ChatInputCommandInteraction<"cached" | "raw">,
@@ -52,5 +70,89 @@ export default async function configCounting(
 					}*`,
 			},
 		],
+		components: [
+			{
+				type: ComponentType.ActionRow,
+				components: [
+					{
+						type: ComponentType.Button,
+						customId: `${config.channel},${interaction.user.id}_setLastNumber`,
+						label: "Set Last Number",
+						style: ButtonStyle.Primary,
+					},
+				],
+			},
+		],
 	});
+}
+
+export async function promptLastNumber(
+	interaction: ButtonInteraction,
+	data: Snowflake,
+): Promise<void> {
+	const [channelId, userId] = data.split(",");
+	if (interaction.user.id !== userId) return;
+	await interaction.showModal({
+		title: "Set Last Number",
+		customId: `${channelId}_setLastNumber`,
+		components: [
+			{
+				type: ComponentType.ActionRow,
+				components: [
+					{
+						type: ComponentType.TextInput,
+						customId: "number",
+						label: "Last Number",
+						style: TextInputStyle.Short,
+						required: true,
+					},
+				],
+			},
+		],
+	});
+}
+
+export async function setLastNumber(
+	interaction: ModalSubmitInteraction,
+	channelId: string,
+): Promise<void> {
+	const config = await Counting.findOne({ channel: channelId }).exec();
+	if (!config) {
+		await interaction.reply({
+			ephemeral: true,
+			content: `${
+				constants.emojis.statuses.no
+			} Could not find a Counting configuration for ${channelMention(channelId)}!`,
+		});
+		return;
+	}
+
+	const rawNumber = interaction.fields.getTextInputValue("number");
+	const number = parseNumber(rawNumber, config.base);
+	if (Number.isNaN(number)) {
+		await interaction.reply({
+			ephemeral: true,
+			content: `${constants.emojis.statuses.no} **Invalid number!** ${inlineCode(
+				// eslint-disable-next-line unicorn/string-content
+				rawNumber.replaceAll("`", "'"),
+			)} could not be parsed as a number. (base: ${config.base.toLocaleString()})`,
+		});
+		return;
+	}
+
+	const channel = await interaction.guild?.channels
+		.fetch(channelId)
+		.then((channel) => channel && assertSendable(channel));
+	const message = channel && (await channel.send(number.toString(config.base).toUpperCase()));
+	if (channel?.permissionsFor(client.user)?.has(PermissionFlagsBits.AddReactions))
+		await message?.react("👍");
+
+	await config
+		.updateOne({ lastNumber: number, lastAuthor: interaction.user.id, lastId: null })
+		.exec();
+	await interaction.reply(
+		`${constants.emojis.statuses.yes} Set the last number in ${channelMention(
+			channelId,
+		)} to ${stringifyNumber(number, config.base)}!`,
+	);
 }

@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType, ChannelType } from "discord.js";
-import { defineChatCommand, defineEvent } from "strife.js";
+import { defineButton, defineChatCommand, defineEvent, defineModal } from "strife.js";
 
-import configCounting from "./config.ts";
+import configCounting, { promptLastNumber, setLastNumber } from "./config.ts";
 import handleCounting from "./handle.ts";
 
 defineChatCommand(
@@ -74,3 +74,6 @@ defineChatCommand(
 );
 
 defineEvent("messageCreate", handleCounting);
+
+defineButton("setLastNumber", promptLastNumber);
+defineModal("setLastNumber", setLastNumber);
