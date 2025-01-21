@@ -15,21 +15,15 @@ import {
 	PermissionFlagsBits,
 	TextInputStyle,
 } from "discord.js";
-import {
-	client,
-	getBaseChannel,
-	GlobalUsersPattern,
-	InvitesPattern,
-	stripMarkdown,
-} from "strife.js";
+import { client, getBaseChannel } from "strife.js";
 
 import constants from "../../common/constants.ts";
-import { GlobalBotInvitesPattern, messageToText } from "../../util/discord.ts";
-import { normalize } from "../../util/text.ts";
 import { Chat, ChatConfig, ChatConsent } from "./misc.ts";
+import { postProcessResponse, preProcessResponse, processPrompt } from "./process.ts";
 
 export default async function sendChat(message: Message<true>): Promise<string | undefined> {
 	if (
+		!message.member ||
 		message.author.id === client.user.id ||
 		(!message.mentions.has(client.user) &&
 			message.mentions.users.size > (message.mentions.has(message.author) ? 1 : 0))
@@ -39,18 +33,12 @@ export default async function sendChat(message: Message<true>): Promise<string |
 	const config = await ChatConfig.findOne({ guild: message.guild.id }).exec();
 	if (message.channel.id !== config?.channel || !config.enabled) return;
 
-	const prompt = stripMarkdown(normalize(messageToText(message, false))).replaceAll(
-		GlobalUsersPattern,
-		client.user.toString(),
-	);
+	const prompt = processPrompt(message);
+	const chats = await Chat.find({ guild: message.guild.id }).lean();
 
-	const chats = await Chat.find({ guild: message.guild.id, response: { $ne: prompt } }).lean();
-	const response = getResponse(0.9) ?? getResponse(0.75) ?? getResponse(0.45);
+	const response = getResponse(0.95) ?? getResponse(0.75) ?? getResponse(0.5);
 	if (!response) return;
-
-	return response
-		.replaceAll(client.user.toString(), message.author.toString())
-		.replaceAll("<@0>", client.user.toString());
+	return await postProcessResponse(response, message.member);
 
 	function getResponse(threshold: number): string | undefined {
 		const responses = didYouMean(prompt, chats, {
@@ -88,36 +76,18 @@ export async function learn(message: Message<true>): Promise<void> {
 	)
 		return;
 
-	const response = messageToText(message, false)
-		.replaceAll(message.author.toString(), "<@0>")
-		.replaceAll(GlobalUsersPattern, client.user.toString());
-	if (
-		!response ||
-		response.length > 500 ||
-		response.split("\n").length > 5 ||
-		response.match(InvitesPattern)?.length ||
-		response.match(GlobalBotInvitesPattern)?.length
-	)
-		return;
+	const response = preProcessResponse(message);
+	if (response === undefined) return;
 
 	const reference =
 		message.type === MessageType.Reply ?
 			await message.fetchReference().catch(() => void 0)
 		:	previous;
-	const prompt =
-		reference &&
-		stripMarkdown(normalize(messageToText(reference, false).toLowerCase())).replaceAll(
-			GlobalUsersPattern,
-			client.user.toString(),
-		);
+	if (reference?.author.id === message.author.id) return;
 
-	if (
-		reference?.author.id === message.author.id ||
-		prompt === undefined ||
-		!response ||
-		prompt === response
-	)
-		return;
+	const prompt = reference && processPrompt(reference);
+	if (prompt === undefined) return;
+
 	await new Chat({ guild: message.guild.id, prompt, response }).save();
 }
 
