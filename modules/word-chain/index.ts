@@ -1,7 +1,11 @@
 import { ApplicationCommandOptionType, ChannelType } from "discord.js";
-import { defineChatCommand, defineEvent } from "strife.js";
+import { defineButton, defineChatCommand, defineEvent, defineModal } from "strife.js";
 
-import configWordChain, { autocompleteLanguage } from "./config.ts";
+import configWordChain, {
+	autocompleteLanguage,
+	promptLastLetter,
+	setLastLetter,
+} from "./config.ts";
 import handleWordChain from "./handle.ts";
 
 defineChatCommand(
@@ -68,3 +72,6 @@ defineChatCommand(
 );
 
 defineEvent("messageCreate", handleWordChain);
+
+defineButton("setLastLetter", promptLastLetter);
+defineModal("setLastLetter", setLastLetter);
