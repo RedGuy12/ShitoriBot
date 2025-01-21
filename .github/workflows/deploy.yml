@@ -3,20 +3,28 @@ on:
     workflow_dispatch:
     release:
         types: [published]
+
 jobs:
     deploy:
-        name: Deploy on Fly
+        name: Deploy bot
         runs-on: ubuntu-24.04
-        concurrency: deploy-group
 
         steps:
             - name: Checkout
               uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Setup flyctl
-              uses: superfly/flyctl-actions/setup-flyctl@63da3ecc5e2793b98a3f2519b3d75d4f4c11cec2
+            - name: Setup Node.JS
+              uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+              with:
+                  node-version-file: package.json
+                  cache: npm
+
+            - name: Install
+              run: npm ci --force
 
             - name: Deploy
-              run: flyctl deploy
+              run:
+                  npx railway up --ci --service 4560c924-5c5c-41fe-8854-f484428ed753 --environment
+                  production
               env:
-                  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+                  RAILWAY_TOKEN: ${{secrets.RAILWAY_TOKEN}}
