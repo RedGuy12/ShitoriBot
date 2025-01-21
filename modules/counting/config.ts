@@ -151,7 +151,7 @@ export async function setLastNumber(
 		.updateOne({
 			lastNumber: number,
 			lastAuthor: interaction.user.id,
-			lastId: (message ?? interaction)?.id,
+			lastId: (message ?? interaction).id,
 		})
 		.exec();
 

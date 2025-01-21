@@ -5,9 +5,9 @@ import type {
 	Embed,
 	Message,
 	MessageSnapshot,
+	SendableChannels,
 	Snowflake,
 } from "discord.js";
-import type { SendableChannel } from "strife.js";
 
 import {
 	channelLink,
@@ -433,7 +433,7 @@ export const GlobalBotInvitesPattern = new RegExp(
 	"gi",
 );
 
-export function assertSendable<T extends Channel>(channel: T): (T & SendableChannel) | undefined {
+export function assertSendable<T extends Channel>(channel: T): (T & SendableChannels) | undefined {
 	if (!channel.isSendable()) return;
 	if (channel.isDMBased()) return channel;
 
