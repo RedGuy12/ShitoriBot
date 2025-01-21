@@ -4,6 +4,9 @@ import { defineButton, defineChatCommand, defineEvent, defineModal } from "strif
 import configWordChain, {
 	autocompleteLanguage,
 	promptLastLetter,
+	resetChannel,
+	resetChannelConfirm,
+	resetChannelModal,
 	setLastLetter,
 } from "./config.ts";
 import handleWordChain from "./handle.ts";
@@ -75,3 +78,7 @@ defineEvent("messageCreate", handleWordChain);
 
 defineButton("setLastLetter", promptLastLetter);
 defineModal("setLastLetter", setLastLetter);
+
+defineButton("resetChannel", resetChannelConfirm);
+defineButton("resetChannelConfirmed", resetChannelModal);
+defineModal("resetChannel", resetChannel);

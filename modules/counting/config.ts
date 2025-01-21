@@ -78,7 +78,7 @@ export default async function configCounting(
 						type: ComponentType.Button,
 						customId: `${config.channel},${interaction.user.id}_setLastNumber`,
 						label: "Set Last Number",
-						style: ButtonStyle.Primary,
+						style: ButtonStyle.Secondary,
 					},
 				],
 			},
@@ -148,8 +148,13 @@ export async function setLastNumber(
 		await message?.react("👍");
 
 	await config
-		.updateOne({ lastNumber: number, lastAuthor: interaction.user.id, lastId: null })
+		.updateOne({
+			lastNumber: number,
+			lastAuthor: interaction.user.id,
+			lastId: (message ?? interaction)?.id,
+		})
 		.exec();
+
 	await interaction.reply(
 		`${constants.emojis.statuses.yes} Set the last number in ${channelMention(
 			channelId,

@@ -80,7 +80,13 @@ export default async function configWordChain(
 						type: ComponentType.Button,
 						customId: `${config.channel},${interaction.user.id}_setLastLetter`,
 						label: "Set Last Letter",
-						style: ButtonStyle.Primary,
+						style: ButtonStyle.Secondary,
+					},
+					{
+						type: ComponentType.Button,
+						customId: `${config.channel},${interaction.user.id}_resetChannel`,
+						label: "Reset Channel",
+						style: ButtonStyle.Danger,
 					},
 				],
 			},
@@ -122,37 +128,100 @@ export async function promptLastLetter(
 		],
 	});
 }
-
 export async function setLastLetter(
 	interaction: ModalSubmitInteraction,
 	channelId: string,
 ): Promise<void> {
-	const config = await WordChainConfig.findOne({ channel: channelId }).exec();
-	if (!config) {
-		await interaction.reply({
-			ephemeral: true,
-			content: `${
-				constants.emojis.statuses.no
-			} Could not find a Word Chain configuration for ${channelMention(channelId)}!`,
-		});
-		return;
-	}
-
-	const letter = normalize(interaction.fields.getTextInputValue("letter")).toUpperCase();
+	const letter =
+		normalize(interaction.fields.getTextInputValue("letter")).toUpperCase().at(-1) ?? "";
 
 	const channel = await interaction.guild?.channels
 		.fetch(channelId)
+		.catch(() => void 0)
 		.then((channel) => channel && assertSendable(channel));
 	const message = channel && (await channel.send(letter));
 	if (channel?.permissionsFor(client.user)?.has(PermissionFlagsBits.AddReactions))
 		await message?.react("👍");
 
-	await config
-		.updateOne({ lastLetter: letter, lastAuthor: interaction.user.id, lastId: null })
-		.exec();
+	await new Word({
+		channel: channelId,
+		author: interaction.user.id,
+		word: letter,
+		id: (message ?? interaction).id,
+	}).save();
+
 	await interaction.reply(
 		`${constants.emojis.statuses.yes} Set the last letter in ${channelMention(
 			channelId,
 		)} to ${letter}!`,
+	);
+}
+
+export async function resetChannelConfirm(
+	interaction: ButtonInteraction,
+	data: Snowflake,
+): Promise<void> {
+	const [channelId, userId] = data.split(",");
+	if (interaction.user.id !== userId) return;
+	await interaction.reply({
+		ephemeral: true,
+		content:
+			`**Are you sure** you want to **reset all words** used in ${channelMention(channelId)}? **This is irreversible.** All words ever used in this channel will be **permamently wiped from the database.**\n` +
+			"Alternatively, you can create and configure a new channel for Word Chain, and the words used here will not transfer over.",
+		components: [
+			{
+				type: ComponentType.ActionRow,
+				components: [
+					{
+						type: ComponentType.Button,
+						customId: `${channelId}_resetChannelConfirmed`,
+						label: "Yes, Reset The Channel",
+						style: ButtonStyle.Danger,
+					},
+				],
+			},
+		],
+	});
+}
+export async function resetChannelModal(
+	interaction: ButtonInteraction,
+	channelId: string,
+): Promise<void> {
+	const channel = await interaction.guild?.channels.fetch(channelId).catch(() => void 0);
+	await interaction.showModal({
+		title: `Permamently Reset ${channel ? `#${channel.name}` : "Channel"}`,
+		customId: `${channelId}_resetChannel`,
+		components: [
+			{
+				type: ComponentType.ActionRow,
+				components: [
+					{
+						type: ComponentType.TextInput,
+						customId: "confirmation",
+						label: "This is your last chance to change your mind.",
+						style: TextInputStyle.Short,
+						required: true,
+						placeholder: "Please type “confirm” to confirm the channel reset",
+					},
+				],
+			},
+		],
+	});
+}
+export async function resetChannel(
+	interaction: ModalSubmitInteraction,
+	channelId: string,
+): Promise<void> {
+	if (interaction.fields.getTextInputValue("confirmation") !== "confirm") {
+		await interaction.reply({
+			ephemeral: true,
+			content: `${constants.emojis.statuses.no} Channel reset canceled.`,
+		});
+		return;
+	}
+
+	await Word.deleteMany({ channel: channelId }).exec();
+	await interaction.reply(
+		`${constants.emojis.statuses.yes} **Fully reset all words used in ${channelMention(channelId)}.**`,
 	);
 }
